@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
+using Akka.Util;
 using OpenTracing.Util;
 using Petabridge.Tracing.Zipkin;
 using Phobos.Actor;
@@ -16,6 +17,27 @@ namespace Phobos.Zipkin.Repro
 
         protected override void OnReceive(object message)
         {
+            switch (message)
+            {
+                case string str:
+                {
+                    break;
+                }
+                case int i:
+                {
+                    if (i % 2 == 0)
+                    {
+                        Context.GetInstrumentation().Tracer.ActiveSpan.SetTag("IsEven", "true");
+                    }
+                    else
+                    {
+                        Context.GetInstrumentation().Tracer.ActiveSpan.SetTag("IsEven", "false");
+                    }
+                    break;
+                }
+            }           
+            
+        
             using (var trace = Context.GetInstrumentation().Tracer.BuildSpan("Foo").StartActive())
             {
                 _log.Info("Tracer is of type [{0}]",  Context.GetInstrumentation().Tracer.GetType());
@@ -39,6 +61,12 @@ namespace Phobos.Zipkin.Repro
             var actor = actorSystem.ActorOf(Props.Create(() => new MyActor()));
             
             actorSystem.Scheduler.ScheduleTellRepeatedly(TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), actor, "hit", ActorRefs.NoSender);
+            actorSystem.Scheduler.Advanced.ScheduleRepeatedly(TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1),
+                () =>
+                {
+                    var myInt = ThreadLocalRandom.Current.Next();
+                    actor.Tell(myInt);
+                });
 
             await actorSystem.WhenTerminated;
         }
