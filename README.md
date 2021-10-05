@@ -32,7 +32,7 @@ Finally, compile and run this sample by running `dotnet run -c Release` in the r
 
 You'll be able to search for Zipkin traces using the UI like so:
 
-![Zipkin service, operation name, and tag search](/images/zipkin-mysql.gif)
+![Zipkin service, operation name, and tag search](images/zipkin-mysql.gif)
 
 > To run a tag search in Zipkin, you'll need to specify the following syntax in the tag dialog window:
 > `tagQuery={tagName} and {tagName}={exactValue}`
